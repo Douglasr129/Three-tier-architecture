@@ -8,9 +8,14 @@ namespace DevIO.Api.Configurations
     {
         public AutomapperConfig() 
         {
-            CreateMap<Fornecedor, FornecedorViewModel>().ReverseMap();
-            CreateMap<Endereco, EnderecoViewModel>().ReverseMap();
-            CreateMap<ProdutoViewModel, Produto>();
+            CreateMap<Fornecedor, FornecedorViewModel>()
+                .ReverseMap();
+
+            CreateMap<Endereco, EnderecoViewModel>()
+                .ReverseMap();
+
+            CreateMap<ProdutoViewModel, Produto>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<Produto, ProdutoViewModel>()
                 .ForMember(dest => dest.NomeFornecedor, opt => opt.MapFrom(src => src.Fornecedor!.Nome));

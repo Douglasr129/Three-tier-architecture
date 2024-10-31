@@ -52,9 +52,9 @@ namespace DevIO.Api.Controllers
             }
             produtoViewModel.Imagem = imagemNome;
 
-            if (!ModelState.IsValid) return CustomResponse(ModelState);
+            var produto = _mapper.Map<Produto>(produtoViewModel);
 
-            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+            await _produtoService.Adicionar(produto);
 
             return CustomResponse(HttpStatusCode.Created, produtoViewModel);
         }
@@ -67,10 +67,23 @@ namespace DevIO.Api.Controllers
                 NotificarErro("Os ids informados não são iguais!");
                 return CustomResponse();
             }
+            var produtoAtualizacao = await ObterProduto(id);
+
+            if (string.IsNullOrEmpty(produtoViewModel.Imagem))
+                produtoViewModel.Imagem = produtoAtualizacao.Imagem;
 
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var produtoAtualizacao = await ObterProduto(id);
+            if (produtoViewModel.ImagemUpload != null)
+            {
+                var imagemNome = Guid.NewGuid() + "_" + produtoViewModel.Imagem;
+                if (!UploadArquivo(produtoViewModel.ImagemUpload, imagemNome))
+                {
+                    return CustomResponse(ModelState);
+                }
+
+                produtoAtualizacao.Imagem = imagemNome;
+            }
 
             produtoAtualizacao.FornecedorId = produtoViewModel.FornecedorId;
             produtoAtualizacao.Nome = produtoViewModel.Nome;
@@ -99,7 +112,7 @@ namespace DevIO.Api.Controllers
         {
             return _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoFornecedor(id));
         }
-        private bool UploadArquivo(string arquivo, string imgNome)
+        private bool UploadArquivo(string? arquivo, string imgNome)
         {
             if (string.IsNullOrEmpty(arquivo))
             {
@@ -122,15 +135,34 @@ namespace DevIO.Api.Controllers
             return true;
         }
 
-        #region UploadAlternativo    
+        #region UploadAlternativo
+
+        [HttpPost("Adicionar")]
+        public async Task<ActionResult<ProdutoViewModel>> AdicionarAlternativo(ProdutoImagemViewModel produtoViewModel)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            var imgPrefixo = Guid.NewGuid() + "_";
+            if (!await UploadArquivoAlternativo(produtoViewModel.ImagemUpload, imgPrefixo))
+            {
+                return CustomResponse(ModelState);
+            }
+
+            produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload!.FileName;
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+
+            return CustomResponse(HttpStatusCode.Created, produtoViewModel);
+        }
+
         [RequestSizeLimit(40000000)]
+        //[DisableRequestSizeLimit]
         [HttpPost("imagem")]
         public ActionResult AdicionarImagem(IFormFile file)
         {
             return Ok(file);
         }
 
-        private async Task<bool> UploadArquivoAlternativo(IFormFile arquivo, string imgPrefixo)
+        private async Task<bool> UploadArquivoAlternativo(IFormFile? arquivo, string imgPrefixo)
         {
             if (arquivo == null || arquivo.Length == 0)
             {
