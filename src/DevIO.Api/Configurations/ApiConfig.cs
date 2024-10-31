@@ -17,7 +17,12 @@ namespace DevIO.Api.Configurations
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-           
+            var mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+            builder.Services.AddDbContext<MeuDbContext>(options =>
+                                    options.UseMySql(mySqlConnection,
+                                                        ServerVersion.AutoDetect(mySqlConnection)));
+
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             builder.Services.ResolveDependencies();
             return builder;
@@ -34,6 +39,7 @@ namespace DevIO.Api.Configurations
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();

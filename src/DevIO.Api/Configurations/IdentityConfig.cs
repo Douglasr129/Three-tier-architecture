@@ -1,4 +1,5 @@
 ﻿using DevIO.Api.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevIO.Api.Configurations
@@ -12,6 +13,10 @@ namespace DevIO.Api.Configurations
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                                     options.UseMySql(mySqlConnection,
                                                         ServerVersion.AutoDetect(mySqlConnection)));
+
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
             return builder;
         }
     }
