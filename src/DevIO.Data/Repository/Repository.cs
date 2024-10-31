@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DevIO.Data.Repository
 {
-    public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity :Entity, new()
+    public abstract class Repository<TEntity> : IRepository<TEntity> where TEntity : Entity, new()
     {
         protected readonly MeuDbContext Db;
         protected readonly DbSet<TEntity> DbSet;
@@ -21,16 +21,16 @@ namespace DevIO.Data.Repository
             DbSet = db.Set<TEntity>();
         }
 
-        public virtual async Task<TEntity> ObterPorId(Guid id)
-        {
-            return await DbSet.FindAsync(id);
+        public virtual async Task<TEntity?> ObterPorId(Guid id) 
+        { 
+            return await DbSet.FindAsync(id); 
         }
 
         public virtual async Task<List<TEntity>> ObterTodos()
         {
             return await DbSet.ToListAsync();
         }
-        public async Task<IEnumerable<TEntity>> Buscar(System.Linq.Expressions.Expression<Func<TEntity, bool>> predicate)
+        public async Task<IEnumerable<TEntity?>> Buscar(System.Linq.Expressions.Expression<Func<TEntity, bool>> predicate)
         {
             return await DbSet.AsNoTracking().Where(predicate).ToListAsync();
         }
@@ -47,11 +47,11 @@ namespace DevIO.Data.Repository
             await SaveChanges();
         }
 
-        
+
 
         public virtual async Task Remover(Guid id)
         {
-            DbSet.Remove(new TEntity { Id = id});
+            DbSet.Remove(new TEntity { Id = id });
             await SaveChanges();
         }
 

@@ -27,7 +27,7 @@ namespace DevIO.Api.Controllers
         [HttpGet]
         public async Task<IEnumerable<ProdutoViewModel>> ObterTodos()
         {
-            return _mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedores());                               
+            return _mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedores());
         }
 
         [HttpGet("{id:guid}")]
@@ -45,9 +45,18 @@ namespace DevIO.Api.Controllers
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+            var imagemNome = Guid.NewGuid() + "_" + produtoViewModel.Imagem;
+            if (!UploadArquivo(produtoViewModel.ImagemUpload, imagemNome))
+            {
+                return CustomResponse();
+            }
+            produtoViewModel.Imagem = imagemNome;
 
-            return CustomResponse(HttpStatusCode.Created ,produtoViewModel);
+            var produto = _mapper.Map<Produto>(produtoViewModel);
+
+            await _produtoService.Adicionar(produto);
+
+            return CustomResponse(HttpStatusCode.Created, produtoViewModel);
         }
 
         [HttpPut("{id:guid}")]
@@ -58,10 +67,23 @@ namespace DevIO.Api.Controllers
                 NotificarErro("Os ids informados não são iguais!");
                 return CustomResponse();
             }
+            var produtoAtualizacao = await ObterProduto(id);
+
+            if (string.IsNullOrEmpty(produtoViewModel.Imagem))
+                produtoViewModel.Imagem = produtoAtualizacao.Imagem;
 
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var produtoAtualizacao = await ObterProduto(id);
+            if (produtoViewModel.ImagemUpload != null)
+            {
+                var imagemNome = Guid.NewGuid() + "_" + produtoViewModel.Imagem;
+                if (!UploadArquivo(produtoViewModel.ImagemUpload, imagemNome))
+                {
+                    return CustomResponse(ModelState);
+                }
+
+                produtoAtualizacao.Imagem = imagemNome;
+            }
 
             produtoAtualizacao.FornecedorId = produtoViewModel.FornecedorId;
             produtoAtualizacao.Nome = produtoViewModel.Nome;
@@ -90,5 +112,80 @@ namespace DevIO.Api.Controllers
         {
             return _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoFornecedor(id));
         }
+        private bool UploadArquivo(string? arquivo, string imgNome)
+        {
+            if (string.IsNullOrEmpty(arquivo))
+            {
+                NotificarErro("Forneça uma imagem para este produto!");
+                return false;
+            }
+
+            var imageDataByteArray = Convert.FromBase64String(arquivo);
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", imgNome);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                NotificarErro("Já existe um arquivo com este nome!");
+                return false;
+            }
+
+            System.IO.File.WriteAllBytes(filePath, imageDataByteArray);
+
+            return true;
+        }
+
+        #region UploadAlternativo
+
+        [HttpPost("Adicionar")]
+        public async Task<ActionResult<ProdutoViewModel>> AdicionarAlternativo(ProdutoImagemViewModel produtoViewModel)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            var imgPrefixo = Guid.NewGuid() + "_";
+            if (!await UploadArquivoAlternativo(produtoViewModel.ImagemUpload, imgPrefixo))
+            {
+                return CustomResponse(ModelState);
+            }
+
+            produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload!.FileName;
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+
+            return CustomResponse(HttpStatusCode.Created, produtoViewModel);
+        }
+
+        [RequestSizeLimit(40000000)]
+        //[DisableRequestSizeLimit]
+        [HttpPost("imagem")]
+        public ActionResult AdicionarImagem(IFormFile file)
+        {
+            return Ok(file);
+        }
+
+        private async Task<bool> UploadArquivoAlternativo(IFormFile? arquivo, string imgPrefixo)
+        {
+            if (arquivo == null || arquivo.Length == 0)
+            {
+                NotificarErro("Forneça uma imagem para este produto!");
+                return false;
+            }
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imgPrefixo + arquivo.FileName);
+
+            if (System.IO.File.Exists(path))
+            {
+                NotificarErro("Já existe um arquivo com este nome!");
+                return false;
+            }
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await arquivo.CopyToAsync(stream);
+            }
+
+            return true;
+        }
+
+        #endregion
     }
 }

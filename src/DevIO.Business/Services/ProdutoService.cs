@@ -15,10 +15,10 @@ namespace DevIO.Business.Services
         }
 
         public async Task Adicionar(Produto produto)
-        {
+         {
             if (!ExecutarValidacao(new ProdutoValidation(), produto)) return;
 
-            var produtoExistente = _produtoRepository.ObterPorId(produto.Id);
+            var produtoExistente = await _produtoRepository.ObterPorId(produto.Id);
 
             if(produtoExistente != null)
             {
