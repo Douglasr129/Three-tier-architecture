@@ -5,7 +5,7 @@
 namespace DevIO.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class alteracaoproduto : Migration
+    public partial class Alteracaoproduto : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

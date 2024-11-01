@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
@@ -9,7 +10,8 @@ using System.Net;
 namespace DevIO.Api.Controllers
 {
     [Authorize]
-    [Route("api/fornecedores")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/fornecedores")]
     public class FornecedoresController : MainController
     {
         private readonly IMapper _mapper;
@@ -19,13 +21,13 @@ namespace DevIO.Api.Controllers
         public FornecedoresController(IMapper mapper,
                                       IFornecedorRepository fornecedorRepository,
                                       IFornecedorService fornecedorService,
-                                      INotificador notificador) : base(notificador)
+                                      INotificador notificador,
+                                      IUser _User) : base(notificador, _User)
         {
             _mapper = mapper;
             _fornecedorRepository = fornecedorRepository;
             _fornecedorService = fornecedorService;
         }
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IEnumerable<FornecedorViewModel>> ObterTodos()
         {
