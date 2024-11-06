@@ -1,13 +1,18 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
+using DevIO.Api.Controllers;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace DevIO.Api.Controllers
+namespace DevIO.Api.Versioning.V1.Controllers
 {
-    [Route("api/produtos")]
+    [Authorize]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/produtos")]
     public class ProdutosController : MainController
     {
         private readonly IProdutoRepository _produtoRepository;
@@ -17,7 +22,8 @@ namespace DevIO.Api.Controllers
         public ProdutosController(IProdutoRepository produtoRepository,
                                   IProdutoService produtoService,
                                   IMapper mapper,
-                                  INotificador notificador) : base(notificador)
+                                  INotificador notificador,
+                                  IUser _User) : base(notificador, _User)
         {
             _produtoRepository = produtoRepository;
             _produtoService = produtoService;

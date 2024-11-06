@@ -13,7 +13,7 @@ namespace DevIO.Data.Migrations
 {
     [DbContext(typeof(MeuDbContext))]
     [Migration("20241030193655_alteracao-produto")]
-    partial class alteracaoproduto
+    partial class Alteracaoproduto
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
