@@ -21,15 +21,18 @@ namespace DevIO.Api.Versioning.V1.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
+        private readonly ILogger<AuthController> _logger;
         public AuthController(INotificador notificador,
                                SignInManager<IdentityUser> signInManager,
                                UserManager<IdentityUser> userManager,
                                IOptions<AppSettings> appSettings,
-                               IUser _User) : base(notificador, _User)
+                               IUser _User,
+                               ILogger<AuthController> logger) : base(notificador, _User)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _appSettings = appSettings.Value;
+            _logger = logger;
         }
 
         [HttpPost("nova-conta")]
@@ -46,6 +49,7 @@ namespace DevIO.Api.Versioning.V1.Controllers
             var result = await _userManager.CreateAsync(user, registerUser.Password);
             if (result.Succeeded)
             {
+                _logger.LogInformation("Usuário " + registerUser.Email + " registrado com sucesso");
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return CustomResponse(HttpStatusCode.Created, await GerarJwt(user.Email));
             }
