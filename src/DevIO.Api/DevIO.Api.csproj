@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Versioning\V2\" />
     <Folder Include="wwwroot\img\" />
   </ItemGroup>
 

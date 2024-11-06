@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using DevIO.Api.Controllers;
 using DevIO.Api.Extensions;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
@@ -11,7 +12,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 
-namespace DevIO.Api.Controllers
+namespace DevIO.Api.Versioning.V1.Controllers
 {
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}")]
@@ -24,7 +25,7 @@ namespace DevIO.Api.Controllers
                                SignInManager<IdentityUser> signInManager,
                                UserManager<IdentityUser> userManager,
                                IOptions<AppSettings> appSettings,
-                               IUser _User ): base(notificador, _User)
+                               IUser _User) : base(notificador, _User)
         {
             _signInManager = signInManager;
             _userManager = userManager;

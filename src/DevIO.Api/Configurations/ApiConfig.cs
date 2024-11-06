@@ -1,6 +1,8 @@
 ﻿using Asp.Versioning;
+using DevIO.Api.Configuration;
 using DevIO.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using Asp.Versioning.ApiExplorer;
 
 namespace DevIO.Api.Configurations
 {
@@ -29,8 +31,7 @@ namespace DevIO.Api.Configurations
                     option.GroupNameFormat = "'v'VVV";
                     option.SubstituteApiVersionInUrl = true;
                 });
-            builder.Services.AddSwaggerGen();
-
+            builder.Services.AddSwaggerConfig();
             var mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
             builder.Services.AddDbContext<MeuDbContext>(options =>
@@ -63,13 +64,12 @@ namespace DevIO.Api.Configurations
 
         public static WebApplication UseApiConfig(this WebApplication app)
         {
-
+            var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
             if (app.Environment.IsDevelopment())
             {
                 app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerConfig(apiVersionDescriptionProvider);
             }
             else
             {
