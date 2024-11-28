@@ -3,6 +3,7 @@ using DevIO.Api.Configuration;
 using DevIO.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Asp.Versioning.ApiExplorer;
+using DevIO.Api.Extensions;
 
 namespace DevIO.Api.Configurations
 {
@@ -59,6 +60,7 @@ namespace DevIO.Api.Configurations
                             //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
                             .AllowAnyHeader());
             });
+            
             return builder;
         }
 
@@ -80,6 +82,7 @@ namespace DevIO.Api.Configurations
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.MapControllers();
 

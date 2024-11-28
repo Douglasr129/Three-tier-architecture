@@ -7,11 +7,14 @@ namespace DevIO.Business.Services
     public class FornecedorService : BaseService, IFornecedorService
     {
         private readonly IFornecedorRepository _fornecedorRepository;
+        private readonly IEnderecoRepository _enderecoRepository;
 
         public FornecedorService(IFornecedorRepository fornecedorRepository,
-                                 INotificador notificador) : base(notificador)
+                                 INotificador notificador,
+                                 IEnderecoRepository enderecoRepository) : base(notificador)
         {
             _fornecedorRepository = fornecedorRepository;
+            _enderecoRepository = enderecoRepository;
         }
 
         public async Task Adicionar(Fornecedor fornecedor)
@@ -65,6 +68,11 @@ namespace DevIO.Business.Services
             }
 
             await _fornecedorRepository.Remover(id);
+        }
+        public async Task AtualizarEndereco(Endereco endereco)
+        {
+            if (!ExecutarValidacao(new EnderecoValidation(), endereco)) return;
+            await _enderecoRepository.Atualizar(endereco);
         }
 
         public void Dispose()
